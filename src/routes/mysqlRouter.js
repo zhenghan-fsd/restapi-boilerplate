@@ -33,4 +33,66 @@ router.get('/list', async (req, res) => {
   }
 });
 
+router.get('/rollback', async (req, res) => {
+  try {
+    const conn = await mysql.getConnection();
+    console.log(`conn: ${conn}`);
+    let result = await conn.query('SET autocommit = 0');
+    console.log(`start transaction: ${result}`);
+    let sql = `insert into test (name, value) values ('test record', '000001')`;
+    result = await conn.query(sql);
+    console.log(`insert 1: ${result}`);
+
+    sql = `insert into test (name, value) values ('test record', '000002')`;
+    result = await conn.query(sql);
+    console.log(`insert 2: ${result}`);
+
+    result = await conn.query('ROLLBACK');
+    console.log(`rollback: ${result}`);
+
+    result = await conn.query('SET autocommit = 1');
+    console.log(`end transaction: ${result}`);
+
+    result = await conn.query('select * from test');
+    console.log(`query table: ${result}`);
+
+    conn.release();
+
+    res.json({ api: true, result });
+  } catch (err) {
+    res.json({ api: false });
+  }
+});
+
+router.get('/commit', async (req, res) => {
+  try {
+    const conn = await mysql.getConnection();
+    console.log(`conn: ${conn}`);
+    let result = await conn.query('SET autocommit = 0');
+    console.log(`start transaction: ${result}`);
+    let sql = `insert into test (name, value) values ('test record', '000001')`;
+    result = await conn.query(sql);
+    console.log(`insert 1: ${result}`);
+
+    sql = `insert into test (name, value) values ('test record', '000002')`;
+    result = await conn.query(sql);
+    console.log(`insert 2: ${result}`);
+
+    result = await conn.query('COMMIT');
+    console.log(`rollback: ${result}`);
+
+    result = await conn.query('SET autocommit = 1');
+    console.log(`end transaction: ${result}`);
+
+    result = await conn.query('select * from test');
+    console.log(`query table: ${result}`);
+
+    conn.release();
+
+    res.json({ api: true, result });
+  } catch (err) {
+    res.json({ api: false });
+  }
+});
+
 export default router;
