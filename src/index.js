@@ -3,6 +3,7 @@ import dotenv from 'dotenv';
 import bodyParser from 'body-parser';
 
 import mysqlRouter from './routes/mysqlRouter';
+import redisRouter from './routes/redisRouter';
 
 dotenv.config();
 
@@ -13,6 +14,7 @@ const app = express();
 app.use(bodyParser.json());
 
 app.use('/api/mysql', mysqlRouter);
+app.use('/api/redis', redisRouter);
 
 app.get('/*', (req, res) => {
   res.status(404).json({ errors: 'Service invalid.' });
