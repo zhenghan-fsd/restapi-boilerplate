@@ -1,12 +1,6 @@
 import mysql from 'promise-mysql';
-import { host, user, password, database, poolSize } from '../conf/mysqlConf';
+import mysqlConf from '../conf/mysqlConf';
 
-const db = mysql.createPool({
-  connectionLimit: poolSize,
-  host,
-  user,
-  password,
-  database
-});
+export const db = mysql.createPool(mysqlConf);
 
 export default db;

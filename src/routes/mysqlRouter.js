@@ -33,65 +33,27 @@ router.get('/list', async (req, res) => {
   }
 });
 
-router.get('/rollback', async (req, res) => {
+router.get('/transaction', async (req, res) => {
+  const conn = await mysql.getConnection();
   try {
-    const conn = await mysql.getConnection();
-    console.log(`conn: ${conn}`);
-    let result = await conn.query('SET autocommit = 0');
-    console.log(`start transaction: ${result}`);
+    let result = await conn.beginTransaction();
+
     let sql = `insert into test (name, value) values ('test record', '000001')`;
-    result = await conn.query(sql);
-    console.log(`insert 1: ${result}`);
+    await conn.query(sql);
+    result = await conn.query('select count(1) from test');
 
-    sql = `insert into test (name, value) values ('test record', '000002')`;
-    result = await conn.query(sql);
-    console.log(`insert 2: ${result}`);
-
-    result = await conn.query('ROLLBACK');
-    console.log(`rollback: ${result}`);
-
-    result = await conn.query('SET autocommit = 1');
-    console.log(`end transaction: ${result}`);
-
+    sql = `insert into test0 (name, value) values ('test record', '000002')`;
+    await conn.query(sql);
     result = await conn.query('select * from test');
-    console.log(`query table: ${result}`);
 
-    conn.release();
-
+    conn.commit();
     res.json({ api: true, result });
   } catch (err) {
-    res.json({ api: false });
-  }
-});
+    conn.rollback();
 
-router.get('/commit', async (req, res) => {
-  try {
-    const conn = await mysql.getConnection();
-    console.log(`conn: ${conn}`);
-    let result = await conn.query('SET autocommit = 0');
-    console.log(`start transaction: ${result}`);
-    let sql = `insert into test (name, value) values ('test record', '000001')`;
-    result = await conn.query(sql);
-    console.log(`insert 1: ${result}`);
-
-    sql = `insert into test (name, value) values ('test record', '000002')`;
-    result = await conn.query(sql);
-    console.log(`insert 2: ${result}`);
-
-    result = await conn.query('COMMIT');
-    console.log(`rollback: ${result}`);
-
-    result = await conn.query('SET autocommit = 1');
-    console.log(`end transaction: ${result}`);
-
-    result = await conn.query('select * from test');
-    console.log(`query table: ${result}`);
-
+    res.json({ api: false, err });
+  } finally {
     conn.release();
-
-    res.json({ api: true, result });
-  } catch (err) {
-    res.json({ api: false });
   }
 });
 

@@ -1,5 +1,8 @@
-export const host = 'localhost';
-export const user = 'test';
-export const password = '123123';
-export const database = 'test';
-export const poolSize = 50;
+export default {
+  host: 'localhost',
+  port: 3306,
+  user: 'test',
+  password: '123123',
+  database: 'test',
+  connectionLimit: 2
+};
