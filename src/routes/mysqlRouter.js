@@ -1,5 +1,5 @@
 import express from 'express';
-import mysql from '../utils/mysql';
+import mysql, { withTransaction } from '../utils/mysql';
 
 const router = express.Router();
 
@@ -54,6 +54,26 @@ router.get('/transaction', async (req, res) => {
     res.json({ api: false, err });
   } finally {
     conn.release();
+  }
+});
+
+router.get('/transaction/v2', async (req, res) => {
+  try {
+    const transactionResult = await withTransaction(async tx => {
+      let sqlResult = await tx.query(
+        `insert into test (name, value) values ('test record', '000001')`
+      );
+      sqlResult = await tx.query('select count(1) from test');
+      sqlResult = await tx.query(
+        `insert into test0 (name, value) values ('test record', '000002')`
+      );
+
+      return sqlResult;
+    });
+
+    res.json(transactionResult);
+  } catch (err) {
+    res.json({ errors: { code: err.code, sqlMessage: err.sqlMessage } });
   }
 });
 
