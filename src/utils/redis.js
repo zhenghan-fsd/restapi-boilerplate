@@ -20,3 +20,11 @@ export const redisBrpop = key =>
   blockingClient.brpopAsync(key, 0).then(value => JSON.parse(value[1]));
 export const redisLpush = (key, value) =>
   client.lpushAsync(key, JSON.stringify(value));
+
+// Object
+export const redisHset = async (key, obj) => {
+  const r = Object.keys(obj).map(o => client.hsetAsync(key, o, obj[o]));
+  return Promise.all(r);
+};
+
+export const redisHgetall = key => client.hgetallAsync(key);

@@ -5,7 +5,9 @@ import {
   redisExists,
   redisDel,
   redisBrpop,
-  redisLpush
+  redisLpush,
+  redisHset,
+  redisHgetall
 } from '../utils/redis';
 
 const requestMap = {};
@@ -18,7 +20,6 @@ const brpopQueue = async () => {
   while (true) {
     // eslint-disable-next-line
     const result = await redisBrpop(REDIS_TEST_QUEUE);
-    console.log(result);
 
     const res = requestMap.request;
     delete requestMap.request;
@@ -66,6 +67,22 @@ router.get('/queue', async (req, res) => {
   if (!result) {
     res.status(500).json({ errors: { global: 'server error' } });
   }
+});
+
+router.get('/object', async (req, res) => {
+  const object = {
+    name: 'test',
+    password: '123456'
+  };
+  const key = 'hsethash';
+
+  let result = await redisHset(key, object);
+  console.log(result);
+
+  result = await redisHgetall(key);
+  console.log(result);
+
+  res.json(result);
 });
 
 export default router;
