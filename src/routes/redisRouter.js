@@ -21,10 +21,12 @@ const brpopQueue = async () => {
     // eslint-disable-next-line
     const result = await redisBrpop(REDIS_TEST_QUEUE);
 
-    const res = requestMap.request;
-    delete requestMap.request;
+    if (requestMap.request) {
+      const res = requestMap.request;
+      delete requestMap.request;
 
-    res.json({ api: true, result });
+      res.json({ api: true, result });
+    }
   }
 };
 
@@ -33,26 +35,21 @@ brpopQueue();
 router.get('/plain', async (req, res) => {
   const key = 'rediskey';
   let result = await redisExists(key);
-  console.log(`redisExists ${key}? ${result}`);
 
   const value = `Your value for the key`;
   result = await redisSet(key, value);
-  console.log(`redisSet key: ${key} -- value: ${value} -- result: ${result}`);
 
   result = await redisExists(key);
-  console.log(`redisExists ${key}? ${result}`);
 
   result = await redisGet(key);
-  console.log(`redisGet key: ${key}, value: ${result}`);
 
   result = await redisDel(key);
-  console.log(`redisDel ${key}? ${result}`);
 
   result = await redisExists(key);
-  console.log(`redisExists ${key}? ${result}`);
 
   res.json({
     api: true,
+    result,
     message: 'test done. Open your console to see the result'
   });
 });
@@ -67,6 +64,15 @@ router.get('/queue', async (req, res) => {
   if (!result) {
     res.status(500).json({ errors: { global: 'server error' } });
   }
+
+  setTimeout(() => {
+    if (requestMap.request) {
+      const r = requestMap.request;
+      delete requestMap.request;
+
+      r.json({ api: false, errors: { global: 'backend timeout' } });
+    }
+  }, 60 * 1000);
 });
 
 router.get('/object', async (req, res) => {
@@ -77,10 +83,8 @@ router.get('/object', async (req, res) => {
   const key = 'hsethash';
 
   let result = await redisHset(key, object);
-  console.log(result);
 
   result = await redisHgetall(key);
-  console.log(result);
 
   res.json(result);
 });
